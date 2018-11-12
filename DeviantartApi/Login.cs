@@ -1,7 +1,9 @@
 ﻿using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
+using System.Net;
 using System.Net.Http;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -174,13 +176,13 @@ namespace DeviantartApi
             CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
-            var uri = new Uri("https://www.deviantart.com/oauth2/token?" +
-                              "grant_type=authorization_code&" +
-                              $"client_id={clientId}&" +
-                              $"client_secret={secret}&" +
-                              $"code={code}&" +
-                              $"redirect_uri={callbackUrl}");
-            return Requester.MakeRequestAsync<TokenHandler>(uri, cancellationToken: cancellationToken);
+            var uri = new Uri("https://www.deviantart.com/oauth2/token");
+            var msg = new StringContent("grant_type=authorization_code&" +
+                              $"client_id={WebUtility.UrlEncode(clientId)}&" +
+                              $"client_secret={WebUtility.UrlEncode(secret)}&" +
+                              $"code={WebUtility.UrlEncode(code)}&" +
+                              $"redirect_uri={WebUtility.UrlEncode(callbackUrl.AbsoluteUri)}", Encoding.UTF8, "application/x-www-form-urlencoded");
+            return Requester.MakeRequestAsync<TokenHandler>(uri, msg, HttpMethod.Post, cancellationToken: cancellationToken);
         }
 
         public static Task<LoginResult> ClientCredentialsGrantAsync(
